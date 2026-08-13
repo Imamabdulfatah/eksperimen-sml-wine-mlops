@@ -1,0 +1,18 @@
+DagsHub Repository: https://dagshub.com/imamabdul8875/wine-quality-mlops
+Username: imamabdul8875
+Repository: wine-quality-mlops
+MLflow Tracking Server: https://dagshub.com/imamabdul8875/wine-quality-mlops.mlflow
+
+Cara Penggunaan:
+1. Dapatkan Token DagsHub dari: https://dagshub.com/user/settings/tokens
+2. Set Environment Variable sebelum menjalankan script:
+   PowerShell:
+     $env:DAGSHUB_USERNAME="imamabdul8875"
+     $env:DAGSHUB_REPO="wine-quality-mlops"
+     $env:DAGSHUB_TOKEN="<DAGSHUB_TOKEN_ANDA>"
+   Bash:
+     export DAGSHUB_USERNAME="imamabdul8875"
+     export DAGSHUB_REPO="wine-quality-mlops"
+     export DAGSHUB_TOKEN="<DAGSHUB_TOKEN_ANDA>"
+3. Jalankan script tuning:
+   python modelling_tuning.py
