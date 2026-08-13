@@ -9,10 +9,17 @@ Cara Penggunaan:
    PowerShell:
      $env:DAGSHUB_USERNAME="imamabdul8875"
      $env:DAGSHUB_REPO="wine-quality-mlops"
-     $env:DAGSHUB_TOKEN="<DAGSHUB_TOKEN_ANDA>"
+     $env:DAGSHUB_TOKEN="4f39184f33b20f7a89cebf9f00e50c289b3e05fb"
    Bash:
      export DAGSHUB_USERNAME="imamabdul8875"
      export DAGSHUB_REPO="wine-quality-mlops"
-     export DAGSHUB_TOKEN="<DAGSHUB_TOKEN_ANDA>"
+     export DAGSHUB_TOKEN="4f39184f33b20f7a89cebf9f00e50c289b3e05fb"
 3. Jalankan script tuning:
    python modelling_tuning.py
+
+Status Run Eksperimen Berhasil:
+- Experiment Name: wine-quality-tuning
+- MLflow Run ID: 7fea84dea2b344278a8743b8b65da903
+- Direct Run URL: https://dagshub.com/imamabdul8875/wine-quality-mlops.mlflow/#/experiments/0/runs/7fea84dea2b344278a8743b8b65da903
+- Best F1-Score: 0.8180 (Accuracy: 76.50%, ROC-AUC: 0.8353)
+- Artefak Tersimpan: Confusion Matrix, ROC Curve, Feature Importance, Classification Report JSON, MLflow Model

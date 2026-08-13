@@ -1,3 +1,3 @@
-Docker Hub Image: https://hub.docker.com/r/YOUR_DOCKERHUB_USERNAME/wine-quality-model
+Docker Hub Image: https://hub.docker.com/r/imamfth/wine-quality-model
 
 Ganti YOUR_DOCKERHUB_USERNAME dengan username Docker Hub Anda.

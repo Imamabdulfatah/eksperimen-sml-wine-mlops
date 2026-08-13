@@ -26,7 +26,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import mlflow
 import mlflow.sklearn
-import dagshub
 import json
 import os
 import warnings
@@ -136,11 +135,11 @@ def main():
     print("\n[STEP 3] Hyperparameter Tuning (GridSearchCV)...")
 
     param_grid = {
-        'n_estimators': [100, 200, 300],
-        'max_depth': [10, 20, 30, None],
-        'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 4],
-        'max_features': ['sqrt', 'log2']
+        'n_estimators': [100, 200],
+        'max_depth': [10, 20, None],
+        'min_samples_split': [2, 5],
+        'min_samples_leaf': [1, 2],
+        'max_features': ['sqrt']
     }
 
     rf = RandomForestClassifier(random_state=42, n_jobs=-1)
