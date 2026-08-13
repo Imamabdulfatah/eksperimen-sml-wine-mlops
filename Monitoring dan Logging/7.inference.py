@@ -24,10 +24,11 @@ import json
 import importlib.util
 
 # Import prometheus_exporter module
-import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import importlib
-exporter = importlib.import_module("3.prometheus_exporter")
+import importlib.util
+_exporter_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "3.prometheus_exporter.py")
+_spec = importlib.util.spec_from_file_location("prometheus_exporter", _exporter_path)
+exporter = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(exporter)
 
 app = Flask(__name__)
 
@@ -120,24 +121,75 @@ def predict():
     start_time = time.time()
     
     try:
-        data = request.get_json(force=True)
+        raw_text = request.get_data(as_text=True).strip()
+        print(f"[DEBUG] Received raw body: {raw_text[:200] if raw_text else '<EMPTY>'}")
+        
+        data = request.get_json(force=True, silent=True)
+        if data is None and raw_text:
+            try:
+                data = json.loads(raw_text)
+            except Exception:
+                data = None
+                
+        if data is None or (isinstance(data, (dict, list)) and len(data) == 0):
+            exporter.PREDICTION_ERRORS_TOTAL.labels(error_type='empty_payload').inc()
+            exporter.PREDICTION_REQUESTS_TOTAL.labels(endpoint='/predict', status='400').inc()
+            return jsonify({
+                "status": "error",
+                "message": "Body JSON tidak boleh kosong atau format tidak valid. Pastikan memilih Body -> raw -> JSON di Postman dan isi data.",
+                "example_payload": {
+                    "fixed acidity": 7.4,
+                    "volatile acidity": 0.70,
+                    "citric acid": 0.00,
+                    "residual sugar": 1.9,
+                    "chlorides": 0.076,
+                    "free sulfur dioxide": 11.0,
+                    "total sulfur dioxide": 34.0,
+                    "density": 0.9978,
+                    "pH": 3.51,
+                    "sulphates": 0.56,
+                    "alcohol": 9.4,
+                    "wine_type": "red"
+                }
+            }), 400
+            
         payload_bytes = len(json.dumps(data).encode('utf-8'))
         exporter.REQUEST_PAYLOAD_SIZE_BYTES.observe(payload_bytes)
         
-        # Validasi data input
-        if 'features' not in data:
-            exporter.PREDICTION_ERRORS_TOTAL.labels(error_type='invalid_payload').inc()
-            exporter.PREDICTION_REQUESTS_TOTAL.labels(endpoint='/predict', status='400').inc()
-            return jsonify({"error": "Payload harus memiliki kunci 'features'"}), 400
-        
-        features = data['features']
-        
-        # Format ke DataFrame
-        if isinstance(features[0], list):
-            df_input = pd.DataFrame(features, columns=FEATURE_NAMES[:len(features[0])])
+        # 1. Format: Dictionary
+        if isinstance(data, dict):
+            if 'features' in data:
+                features = data['features']
+                if isinstance(features, list):
+                    if len(features) > 0 and isinstance(features[0], list):
+                        df_input = pd.DataFrame(features, columns=FEATURE_NAMES[:len(features[0])])
+                    else:
+                        df_input = pd.DataFrame([features], columns=FEATURE_NAMES[:len(features)])
+                else:
+                    return jsonify({"error": "Format 'features' harus berupa array"}), 400
+            else:
+                # Direct dictionary with feature names
+                row = data.copy()
+                if 'wine_type' in row:
+                    if str(row['wine_type']).lower() in ['red', '0']:
+                        row['wine_type'] = 0
+                    else:
+                        row['wine_type'] = 1
+                df_input = pd.DataFrame([row])
+                for col in FEATURE_NAMES:
+                    if col not in df_input.columns:
+                        df_input[col] = 0.0
+                df_input = df_input[FEATURE_NAMES]
+                
+        # 2. Format: Direct array/list
+        elif isinstance(data, list):
+            if len(data) > 0 and isinstance(data[0], list):
+                df_input = pd.DataFrame(data, columns=FEATURE_NAMES[:len(data[0])])
+            else:
+                df_input = pd.DataFrame([data], columns=FEATURE_NAMES[:len(data)])
         else:
-            df_input = pd.DataFrame([features], columns=FEATURE_NAMES[:len(features)])
-        
+            return jsonify({"error": "Format JSON tidak dikenali"}), 400
+
         # Predict
         X_scaled = SCALER.transform(df_input)
         preds = MODEL.predict(X_scaled)

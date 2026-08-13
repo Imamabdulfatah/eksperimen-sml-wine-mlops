@@ -7,4 +7,4 @@ scrape_configs:
   - job_name: 'wine_quality_inference'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['inference-server:5000', 'host.docker.internal:5000', 'localhost:5000']
+      - targets: ['localhost:5000']
